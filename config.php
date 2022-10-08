@@ -1,10 +1,10 @@
 <?php
 session_start();
-$APP_TITLE = 'Process Visualisation';
+$APP_TITLE = 'Cast Stock';
 $DB_HOST = "localhost";
 $DB_USER = "root";
 $DB_PASSWORD = "";
-$DB_NAME = "process";
+$DB_NAME = "cast_stock";
 
 //Table Name
 $tblSettings = 'settings';

@@ -360,7 +360,12 @@ function save_lane($post_data)
     else
         echo 'Fail';
 }
-
+function get_max_lane_rows() {
+    global $db, $tblStocking;
+    $query = "SELECT MAX(allocation/height) AS maxrow FROM {$tblStocking}";
+    $res = mysqli_fetch_object($db->query($query));
+    return intval($res->maxrow);
+}
 function get_all_lanes($area, $order = null)
 {
     global $db, $tblStocking;
@@ -465,11 +470,10 @@ function read_parts()
         foreach ($parts as $part) {
             $ar = [];
             if ($part->sf)
-                $ar[] = "System Fill";
+                $ar[] = "L/P";
             if ($part->ps)
-                $ar[] = "Part Stocking";
-            if ($part->fl)
-                $ar[] = "Free Location";
+                $ar[] = "H/P";
+
             echo '<tr>';
             echo '<td style="text-align: center;">' . $part->part_no . '</td>';
             echo '<td style="text-align: center;">' . $part->part_name . '</td>';
@@ -560,7 +564,7 @@ function read_barcode($post_data)
     $lane_barcodes = explode(",", $_POST['lane']);
     $data['error'] = '';
     $data['success'] = '';
-
+    $row = [];
     foreach ($part_barcodes as $index => $part_barcode) {
         $lane_barcode = $lane_barcodes[$index];
         $part = get_part_by_no($part_barcode);
@@ -570,7 +574,7 @@ function read_barcode($post_data)
             $result = $db->query($query);
             if (mysqli_num_rows($result) > 0) {
                 $row = mysqli_fetch_array($result);
-                if (($row['area'] == 'System Fill') && ($part['sf'] == 0) || ($row['area'] == 'Part Stocking') && ($part['ps'] == 0) || ($row['area'] == 'Free Location') && ($part['fl'] == 0))
+                if (($row['area'] == 'L/P') && ($part['sf'] == 0) || ($row['area'] == 'H/P') && ($part['ps'] == 0))
                     $data['error'] = "Part is locked for lane";
                 else {
                     $lane_id = $row['id'];
@@ -601,59 +605,6 @@ function read_barcode($post_data)
                             $data['error'] = 'There is no scanned in lane';
                         }
                     }
-                }
-            } else {
-                // In case of free location
-                $ind_no = -1;
-                $lane_str = strval($lane_barcode);
-                foreach (str_split($lane_str) as $ind => $cha) {
-                    if (is_numeric($cha)) {
-                        $ind_no = $ind;
-                        break;
-                    }
-                }
-                $lane_str_prefix = substr($lane_str, 0, $ind_no);
-                $lane_num = $lane_str_prefix . "1";
-                $lane_index = intval(substr($lane_str, $ind_no));
-
-                $query = "SELECT * FROM {$tblStocking} WHERE `area` = 'Free Location' AND `barcode_in` = '{$lane_num}' LIMIT 1";
-                $result = $db->query($query);
-                if (mysqli_num_rows($result) > 0) {
-                    $row = mysqli_fetch_array($result);
-
-                    if (($row['area'] == 'System Fill') && ($part['sf'] == 0) || ($row['area'] == 'Part Stocking') && ($part['ps'] == 0) || ($row['area'] == 'Free Location') && ($part['fl'] == 0))
-                        $data['error'] = "Part is locked for lane";
-                    else {
-                        $lane_id = $row['id'];
-                        $allocation = $row['allocation'];
-                        //Get left allocation
-                        $query = "SELECT * FROM {$tblScanLog} WHERE `lane_id` = '{$lane_id}' AND `lane_id_fl` = '{$lane_index}' AND `booked_in` = 1 AND `booked_out` = 0";
-                        $result = $db->query($query);
-                        $allocation_done = mysqli_num_rows($result);
-                        $stocking_action = $_SESSION['stocking_action'];
-                        if ($stocking_action == 'in') {
-                            if ($allocation_done == 0) {
-                                $query = "INSERT INTO {$tblScanLog}  (`part`, `lane_id`, `lane_id_fl`, `booked_in`, `booked_out`, `page`, `shift`, `shift_date`, `user_id`, `booked_in_time`)
-                                        value ('{$part_barcode}', '{$lane_id}', '${lane_index}', 1, 0, '{$page}', '{$shift_id}', '{$shift_date}', {$user_id}, NOW())";
-                                $db->query($query);
-                            } else {
-                                $data['error'] = 'Lane allocation already was 0.';
-                            }
-                        } else {
-                            $query = "SELECT * FROM {$tblScanLog} WHERE `part` = '{$part_barcode}' AND `lane_id` = '{$lane_id}' AND `lane_id_fl` = '${lane_index}' AND `booked_in` = 1 AND `booked_out` = 0";
-                            $result = $db->query($query);
-                            $chk = mysqli_num_rows($result);
-                            if ($chk > 0) {
-                                $scanned = mysqli_fetch_object($result);
-                                $update = "UPDATE {$tblScanLog} SET `booked_out` = 1, `out_user_id` = {$user_id}, `booked_out_time` = NOW() WHERE id = {$scanned->id}";
-                                $db->query($update);
-                            } else {
-                                $data['error'] = 'There is no scanned in lane';
-                            }
-                        }
-                    }
-                } else {
-                    $data['error'] = 'Location barcode is incorrect.';
                 }
             }
         } else {
@@ -1221,11 +1172,9 @@ function read_area_lane_status($post_data, $direction = NULL)
     $lanes;
     $areas_name = $STOCKING_AREAS;
     if ( ! intval($this_part['sf']))
-        unset($areas_name[array_search('System Fill', $areas_name)]);
-    if ( ! intval($this_part['fl']))
-        unset($areas_name[array_search('Free Location', $areas_name)]);
+        unset($areas_name[array_search('L/P', $areas_name)]);
     if ( ! intval($this_part['ps']))
-        unset($areas_name[array_search('Part Stocking', $areas_name)]);
+        unset($areas_name[array_search('H/P', $areas_name)]);
     foreach ($areas_name as $index => $area) {
         $lanes = get_all_lanes($area);
         foreach ($lanes as $lane) {
@@ -1444,24 +1393,8 @@ function load_overview_screen($post_data)
             $filled_allocations = mysqli_num_rows($result);
             $allocations = $lane->allocation;
             $height = $lane->height;
-            if ($area == 'Free Location') {
-                $arr = mysqli_fetch_all($result, MYSQLI_ASSOC);
-                $lane_id_fls = array_column($arr, "lane_id_fl");
 
-                for ($i = $allocations; $i > 0; $i--) {
-                    $td_class = '';
-                    if (array_search($i, $lane_id_fls))
-                        $td_class = "full-td";
-
-                    if ($td_class != '')
-                        array_push($td_data, array(
-                            'id' => 'td_' . $lane->id . '_' . $i,
-                            'td_class' => $td_class
-                        ));
-                }
-            }
-
-            if ($area == 'Part Stocking') {
+            if ($area == 'H/P') {
                 $index = ceil($allocations / $height);
                 if ($allocations % $height != 0)
                     $index++;
@@ -1509,7 +1442,7 @@ function load_overview_screen($post_data)
                 }
             }
 
-            if ($area == 'System Fill') {
+            if ($area == 'L/P') {
                 if ($allocations % $height == 0)
                     $start = $allocations;
                 else
@@ -1554,33 +1487,25 @@ function get_box_data($post_data)
     $area = $lane->area;
     $height = $lane->height;
     $allocations = $lane->allocation;
-    if ($area == 'Free Location')
-        $height = 1;
 
     $start = $height * $box_index;
     $end = $height;
 
     echo '<table class="table">';
     echo '<tr>';
-    if ($area == 'Free Location')
-        echo '<td>Area: ' . $area . '</td>';
-    else
-        echo '<td colspan="2">Area: ' . $area . '</td>';
+
+    echo '<td colspan="2">Area: ' . $area . '</td>';
     $colspan = $height - 1;
     echo '<td colspan="' . $colspan . '">Lane: ' . $lane->lane_no . '</td>';
     echo '</tr>';
 
     echo '<tr>';
     echo '<td style="">Location: </td>';
-    if ($area == 'Free Location') {
-        $location = $allocations - $box_index;
-        echo '<td style="">' . $location . '</td>';
-    } else {
-        $s = $allocations - $box_index * $height;
-        $e = $s - $height;
-        for ($i = $s; $i > $e; $i--) {
-            echo '<td style="">' . $i . '</td>';
-        }
+
+    $s = $allocations - $box_index * $height;
+    $e = $s - $height;
+    for ($i = $s; $i > $e; $i--) {
+        echo '<td style="">' . $i . '</td>';
     }
     echo '</tr>';
 

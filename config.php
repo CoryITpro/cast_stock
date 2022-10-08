@@ -38,7 +38,6 @@ $yesterday  = date('Y-m-d', strtotime("-1 days"));
 $weekToday  = date('N');
 
 $STOCKING_AREAS = array(
-    'System Fill',
-    'Part Stocking',
-    'Free Location'
+    'L/P',
+    'H/P'
 );

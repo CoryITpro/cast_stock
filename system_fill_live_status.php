@@ -1,7 +1,7 @@
 <?php
 require_once ("config.php");
 require_once ("functions.php");
-$page_name = "System Fill Live Status";
+$page_name = "L/P Live Status";
 require_once ("assets.php");
 ?>
 <body class="hold-transition sidebar-collapse layout-top-nav" onload="startTime()">

@@ -4,7 +4,7 @@ require_once("functions.php");
 $page_name = "Stocking Overview";
 $_SESSION['page'] = 'stocking_overview.php';
 login_check();
-if(!isset($_SESSION['stocking_action']))
+if (!isset($_SESSION['stocking_action']))
     header('Location: stocking_select_action.php');
 require_once("assets.php");
 $shift_inf = get_current_shift();
@@ -201,111 +201,95 @@ $booked_in_out = get_booked_in_out('Stocking', $shift_inf['shift'], $shift_inf['
                             <div class="col-md-12">
                                 <div class="card card-primary">
                                     <div class="card-body">
-                                        <div class="row">
-                                            <div class="col-sm-7">
-                                                <?php
-                                                //Free Location
-                                                $lanes = array_reverse(get_all_lanes('Free Location'));
-                                                echo '<h5 style="text-align: left;">Free Location</h5>';
-                                                foreach ($lanes as $array_index => $lane) {
-                                                    echo '<div class="row">';
-                                                    echo '<div class="col-md-12">';
-                                                    echo '<table class="float-right lane-table" style="border-collapse: separate; border-spacing: 2px;" data-area="Free Location">';
-                                                    echo '<tr data-lane="' . $lane->id . '">';
-                                                    $allocations = $lane->allocation;
-                                                    $index = 0;
-
-                                                    $number_index = -1;
-                                                    $lane_str = strval($lane->barcode_in);
-                                                    foreach (str_split($lane_str) as $ind => $cha) {
-                                                        if (is_numeric($cha)) {
-                                                            $number_index = $ind;
-                                                            break;
-                                                        }
-                                                    }
-                                                    $lane_str_prefix = substr($lane_str, 0, $number_index);
-
-                                                    for ($i = $allocations; $i > 0; $i--) {
-                                                        echo '<td data-index="' . $index . '" id="td_' . $lane->id . '_' . $i . '" style="border-bottom: 2px solid #424242; border-top: 1px solid #424242;">' . $lane_str_prefix . $i . '</td>';
-                                                        $index++;
-                                                    }
-                                                    echo '</tr>';
-                                                    echo '</table>';
-                                                    echo '</div>';
-                                                    echo '</div>';
-                                                }
-                                                ?>
-                                            </div>
-                                            <div class="col-sm-5">
-                                                <?php
-                                                //System Fill
-                                                $lanes = get_all_lanes('System Fill');
-                                                echo '<h5 style="text-align: left;">System Fill</h5>';
-                                                foreach ($lanes as $lane) {
-                                                    echo '<div class="row">';
-                                                    echo '<div class="col-md-12">';
-                                                    echo '<table style="border-collapse: separate; border-spacing: 2px;" class="lane-table" data-area="System Fill">';
-                                                    echo '<tr data-lane="' . $lane->id . '">';
-                                                    $allocations = $lane->allocation;
-                                                    $height = $lane->height;
-                                                    echo '<td class="title-td">L' . $lane->lane_no . '</td>';
-                                                    if ($allocations % $height == 0)
-                                                        $start = $allocations;
-                                                    else
-                                                        $start = $allocations + ($height - $allocations % $height);
-                                                    $index = 0;
-                                                    for ($i = $start; $i >= $height; $i -= $height) {
-                                                        echo '<td id="td_' . $lane->id . '_' . $i . '" data-index="' . $index . '">' . $i . '</td>';
-                                                        $index++;
-                                                    }
-
-                                                    echo '</tr>';
-                                                    echo '</table>';
-                                                    echo '</div>';
-                                                    echo '</div>';
-                                                }
-                                                ?>
-                                            </div>
+                                        <div>
+                                            <h5 style="float: left;position: relative; left: 10%;">L/P</h5>
+                                            <h5 style="float: right;position: relative; right: 10%;">H/P</h5>
+                                            <div style="clear:both;"></div>
                                         </div>
-                                        <div class="row" style="position: relative; top: -20px;">
-                                            <div class="col-md-12">
-                                                <?php
-                                                //Part Stocking
-                                                $lanes = get_all_lanes('Part Stocking', ' ORDER BY lane_no DESC');
-                                                echo '<h5 style="text-align: left;">Part Stocking</h5>';
-                                                echo '<div class="row">';
-                                                echo '<div class="col-md-12">';
-                                                foreach ($lanes as $lane) {
-                                                    echo '<table class="float-left lane-table" style="border-collapse: separate; border-spacing: 2px;" data-area="Part Stocking">';
-                                                    $allocations = $lane->allocation;
-                                                    $height = $lane->height;
-                                                    $index = ceil($allocations / $height) - 1;
-                                                    if ($allocations % $height != 0)
-                                                        $index++;
-                                                    for ($i = $height; $i <= $allocations; $i += $height) {
-                                                        echo '<tr data-lane="' . $lane->id . '">';
-                                                        echo '<td id="td_' . $lane->id . '_' . $i . '" data-index="' . $index . '">' . $i . '</td>';
-                                                        echo '</tr>';
-                                                        $index--;
-                                                    }
-
-                                                    if ($allocations < $i && $allocations > ($i - $height)) {
-                                                        echo '<tr data-lane="' . $lane->id . '">';
-                                                        echo '<td id="td_' . $lane->id . '_' . $i . '" data-index="' . $index . '">' . $allocations . '</td>';
-                                                        echo '</tr>';
-                                                    }
-
-                                                    echo '<tr>';
-                                                    echo '<td class="title-td">L' . $lane->lane_no . '</td>';
+                                        <?php
+                                        $max_rows = get_max_lane_rows();
+                                        // L/P
+                                        $lanes = get_all_lanes('L/P', ' ORDER BY lane_no ASC');
+                                        foreach ($lanes as $lane) {
+                                            echo '<table class="float-left lane-table" style="border-collapse: separate; border-spacing: 2px;" data-area="L/P">';
+                                            $allocations = $lane->allocation;
+                                            $height = $lane->height;
+                                            $index = ceil($allocations / $height) - 1;
+                                            if ($allocations % $height != 0)
+                                                $index++;
+                                            if ($max_rows - $allocations / $height > 0) {
+                                                for ($i = $max_rows - $allocations / $height; $i >= 0; $i--) {
+                                                    echo '<tr data-lane="' . $lane->id . '">';
+                                                    echo '<td></td>';
                                                     echo '</tr>';
-
-                                                    echo '</table>';
                                                 }
-                                                echo '</div>';
-                                                echo '</div>';
-                                                ?>
-                                            </div>
-                                        </div>
+                                            }
+
+                                            for ($i = $height; $i <= $allocations; $i += $height) {
+                                                echo '<tr data-lane="' . $lane->id . '">';
+                                                echo '<td id="td_' . $lane->id . '_' . $i . '" data-index="' . $index . '">' . $i . '</td>';
+                                                echo '</tr>';
+                                                $index--;
+                                            }
+
+                                            if ($allocations < $i && $allocations > ($i - $height)) {
+                                                echo '<tr data-lane="' . $lane->id . '">';
+                                                echo '<td id="td_' . $lane->id . '_' . $i . '" data-index="' . $index . '">' . $allocations . '</td>';
+                                                echo '</tr>';
+                                            }
+
+                                            echo '<tr>';
+                                            echo '<td class="title-td">L' . $lane->lane_no . '</td>';
+                                            echo '</tr>';
+
+                                            echo '</table>';
+                                        }
+                                        for ($j = 2; $j > 0; $j--) {
+                                            echo '<table class="active-t float-left lane-table" style="border-collapse: separate; border-spacing: 2px;" data-area="L/P">';
+                                            for ($i = $max_rows; $i >= 0; $i--) {
+                                                echo '<tr data-lane="' . $lane->id . '">';
+                                                echo '<td style="background-color: #00b0f0;"></td>';
+                                                echo '</tr>';
+                                            }
+                                            echo '</table>';
+                                        }
+                                        // H/P
+                                        $lanes = get_all_lanes('H/P', ' ORDER BY lane_no ASC');
+                                        foreach ($lanes as $lane) {
+                                            echo '<table class="float-left lane-table" style="border-collapse: separate; border-spacing: 2px;" data-area="L/P">';
+                                            $allocations = $lane->allocation;
+                                            $height = $lane->height;
+                                            $index = ceil($allocations / $height) - 1;
+                                            if ($allocations % $height != 0)
+                                                $index++;
+                                            if ($max_rows - $allocations / $height > 0) {
+                                                for ($i = $max_rows - $allocations / $height; $i > 0; $i--) {
+                                                    echo '<tr data-lane="' . $lane->id . '">';
+                                                    echo '<td></td>';
+                                                    echo '</tr>';
+                                                }
+                                            }
+
+                                            for ($i = $height; $i <= $allocations; $i += $height) {
+                                                echo '<tr data-lane="' . $lane->id . '">';
+                                                echo '<td id="td_' . $lane->id . '_' . $i . '" data-index="' . $index . '">' . $i . '</td>';
+                                                echo '</tr>';
+                                                $index--;
+                                            }
+
+                                            if ($allocations < $i && $allocations > ($i - $height)) {
+                                                echo '<tr data-lane="' . $lane->id . '">';
+                                                echo '<td id="td_' . $lane->id . '_' . $i . '" data-index="' . $index . '">' . $allocations . '</td>';
+                                                echo '</tr>';
+                                            }
+
+                                            echo '<tr>';
+                                            echo '<td class="title-td">L' . $lane->lane_no . '</td>';
+                                            echo '</tr>';
+
+                                            echo '</table>';
+                                        }
+                                        ?>
                                     </div>
                                 </div>
                                 <!-- /.card-body -->
@@ -665,9 +649,9 @@ $booked_in_out = get_booked_in_out('Stocking', $shift_inf['shift'], $shift_inf['
                             var lanes = data.lanes;
                             var lane_names = [];
                             for (let i = 0; i < lanes.length; i++) {
-                                if (lanes[i].area == 'System Fill')
+                                if (lanes[i].area == 'L/P')
                                     var prefix = 'SF';
-                                else if (lanes[i].area == 'Part Stocking')
+                                else if (lanes[i].area == 'H/P')
                                     var prefix = 'L';
                                 else
                                     var prefix = 'FL';

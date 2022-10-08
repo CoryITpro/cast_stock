@@ -1,7 +1,7 @@
 <?php
 require_once ("config.php");
 require_once ("functions.php");
-$page_name = "System Fill History";
+$page_name = "L/P History";
 require_once ("assets.php");
 $week_start = date('Y-m-d', strtotime("this week"));
 $week_end = date('Y-m-d', strtotime("+6 days", strtotime($week_start)));

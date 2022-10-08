@@ -164,9 +164,8 @@ require_once("assets.php");
                         <div class="form-group">
                             <label for="amount">Lock</label>
                             <div class="checkbox">
-                                <label class="checkbox-inline"><input style="margin-right: 3px;" type="checkbox" name="sf_check" id="sf_check" checked value="">System Fill</label>
-                                <label style="margin-left: 20px;" class="checkbox-inline"><input style="margin-right: 3px;" type="checkbox" name="ps_check" id="ps_check" checked value="">Part Stocking</label>
-                                <label style="margin-left: 20px;" class="checkbox-inline"><input style="margin-right: 3px;" type="checkbox" name="fl_check" id="fl_check" checked value="">Free Location</label>
+                                <label class="checkbox-inline"><input style="margin-right: 3px;" type="checkbox" name="sf_check" id="sf_check" checked value="">L/P</label>
+                                <label style="margin-left: 20px;" class="checkbox-inline"><input style="margin-right: 3px;" type="checkbox" name="ps_check" id="ps_check" checked value="">H/P</label>
                             </div>
                         </div>
                     </div>

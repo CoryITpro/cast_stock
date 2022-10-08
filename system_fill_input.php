@@ -1,12 +1,12 @@
 <?php
 require_once ("config.php");
 require_once ("functions.php");
-$page_name = "System Fill Input";
+$page_name = "L/P Input";
 $_SESSION['page'] = 'system_fill_input.php';
 login_check();
 require_once ("assets.php");
 $shift_inf = get_current_shift();
-$booked_in_out = get_booked_in_out('System Fill', $shift_inf['shift'], $shift_inf['date']);
+$booked_in_out = get_booked_in_out('L/P', $shift_inf['shift'], $shift_inf['date']);
 ?>
 <style>
     .table thead>tr>th, tbody>tr>td {
@@ -100,7 +100,7 @@ $booked_in_out = get_booked_in_out('System Fill', $shift_inf['shift'], $shift_in
                                     </thead>
                                     <tbody>
                                     <?php
-                                    $post_data['page'] = 'System Fill';
+                                    $post_data['page'] = 'L/P';
                                     $post_data['shift_id'] = $shift_inf['shift'];
                                     $post_data['shift_date'] = $shift_inf['date'];
                                     read_scan_table($post_data);
@@ -241,7 +241,7 @@ $booked_in_out = get_booked_in_out('System Fill', $shift_inf['shift'], $shift_in
                     action:"read_barcode",
                     shift_id:shift_id,
                     shift_date:shift_date,
-                    page:'System Fill'
+                    page:'L/P'
                 },
                 dataType:'JSON',
             }).done(function (res) {
@@ -269,7 +269,7 @@ $booked_in_out = get_booked_in_out('System Fill', $shift_inf['shift'], $shift_in
                     action:"read_scan_table",
                     shift_id:shift_id,
                     shift_date:shift_date,
-                    page:'System Fill'
+                    page:'L/P'
                 },
                 dataType:'HTML',
             }).done(function (html) {

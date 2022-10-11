@@ -1394,6 +1394,15 @@ function load_overview_screen($post_data)
             $allocations = $lane->allocation;
             $height = $lane->height;
 
+            if ($filled_allocations) {
+                $tmp = mysqli_fetch_array($result);
+                array_push($td_data, array(
+                    'id' => 'td_' . $lane->id . '_0',
+                    'td_class' => $tmp['part']."-color"
+                ));
+            }
+
+
             if ($area == 'H/P') {
                 $index = ceil($allocations / $height);
                 if ($allocations % $height != 0)

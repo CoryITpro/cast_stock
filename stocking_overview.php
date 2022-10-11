@@ -86,6 +86,18 @@ $booked_in_out = get_booked_in_out('Stocking', $shift_inf['shift'], $shift_inf['
     .clicked-box {
         background-color: red;
     }
+    .ZRC-color {
+        background-color: #2f6eba;
+    }
+    .ZRB-color {
+        background-color: #9fcd62;
+    }
+    .ZRKB-color {
+        background-color: #ffff53;
+    }
+    .ZRKC-color {
+        background-color: #ffff53;
+    }
 </style>
 
 <body class="hold-transition sidebar-collapse layout-top-nav" onload="startTime()">
@@ -100,7 +112,7 @@ $booked_in_out = get_booked_in_out('Stocking', $shift_inf['shift'], $shift_inf['
                             <h1 class="m-0" style="display: inline"><?php echo $page_name; ?></h1>
                         </div>
                         <div class="col-sm-4" style="text-align: center;">
-                            <button class="btn bg-cyan" style="width: 160px; margin-right: 20px;" id="btn_overstock" value="">Overstock</button>
+                            <button class="btn bg-cyan" style="display: none;width: 160px; margin-right: 20px;" id="btn_overstock" value="">Overstock</button>
                             <?php
                             if ($_SESSION['stocking_action'] == 'in') {
                                 echo '<button type="button" class="btn btn-primary" id="stocking_action" style="width: 160px;" value="in">IN</button>';
@@ -108,7 +120,7 @@ $booked_in_out = get_booked_in_out('Stocking', $shift_inf['shift'], $shift_inf['
                                 echo '<button type="button" class="btn btn-success" id="stocking_action" style="width: 160px;" value="out">OUT</button>';
                             }
                             ?>
-                            <button class="btn bg-gray-dark" style="width: 160px; margin-left: 20px;" id="btn_overstock_view">Overstock View</button>
+                            <button class="btn bg-gray-dark" style="display: none;width: 160px; margin-left: 20px;" id="btn_overstock_view">Overstock View</button>
                         </div>
                         <div class="col-sm-6" style="text-align: right;">
                             <button class="btn btn-default" style="min-width: 200px;"><?php echo $_SESSION['user']['username'] ?></button>
@@ -239,7 +251,7 @@ $booked_in_out = get_booked_in_out('Stocking', $shift_inf['shift'], $shift_inf['
                                             }
 
                                             echo '<tr>';
-                                            echo '<td class="title-td">L' . $lane->lane_no . '</td>';
+                                            echo '<td id="td_' . $lane->id .'_0" class="title-td">L' . $lane->lane_no . '</td>';
                                             echo '</tr>';
 
                                             echo '</table>';

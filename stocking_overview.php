@@ -302,6 +302,13 @@ $booked_in_out = get_booked_in_out('Stocking', $shift_inf['shift'], $shift_inf['
                                             echo '</table>';
                                         }
                                         ?>
+                                        <div style="clear:both;"></div>
+                                        <div style="display: grid; column-gap: 20px;grid-template-rows: 30px 30px;grid-template-columns: auto auto;">
+                                            <div class="ZRC-color" style="text-align: center;">ZR Cylinder</div>
+                                            <div class="ZRB-color" style="text-align: center;">ZR Block</div>
+                                            <div class="ZRKC-color" style="text-align: center;">ZRK Cylinder</div>
+                                            <div class="ZRKB-color" style="text-align: center;">ZRK Block</div>
+                                        </div>
                                     </div>
                                 </div>
                                 <!-- /.card-body -->

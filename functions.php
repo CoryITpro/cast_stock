@@ -610,8 +610,12 @@ function read_barcode($post_data)
         } else {
             $data['error'] = 'Part No is incorrect.';
         }
-        if ($data['error'] == '')
-            $data['success'] = 'Part : ' . $part['part_no'] . '(' . $part['part_no'] . ') has been scanned to ' . $row['area'] . ', Lane' . $row['lane_no'];
+        if ($data['error'] == '') {
+            if ($_SESSION['stocking_action'] == "out")
+                $data['success'] = 'Part : ' . $part['part_no'] . '(' . $part['part_no'] . ') has been scanned out ' . $row['area'] . ', Lane' . $row['lane_no'];
+            else
+                $data['success'] = 'Part : ' . $part['part_no'] . '(' . $part['part_no'] . ') has been scanned to ' . $row['area'] . ', Lane' . $row['lane_no'];
+        }
     }
 
     $booked_in_out = get_booked_in_out($page, $shift_id, $shift_date);
@@ -1341,20 +1345,18 @@ function get_filled_lanes_by_part($post_data)
     $result = $db->query($query);
     $rows = mysqli_num_rows($result);
     $filled_lanes = array();
-    //$lanes = array();
     if ($rows > 0) {
         while ($row = mysqli_fetch_object($result)) {
             if (!in_array($row->lane_id, $filled_lanes)) {
                 array_push($filled_lanes, $row->lane_id);
-                //array_push($lanes, get_lane_by_id($row->lane_id));
             }
         }
     }
-
     $part = get_part_by_no($part_no);
     $data['part'] = $part;
     $amount = 0;
     $lanes = array();
+    var_dump($filled_lanes);exit;
     foreach ($filled_lanes as $lane_id) {
         $query = "SELECT * FROM {$tblScanLog} WHERE `page` = '{$page}' AND `booked_in` = 1 AND `booked_out` = 0 AND `lane_id` = {$lane_id}";
         $result = $db->query($query);
@@ -1362,9 +1364,9 @@ function get_filled_lanes_by_part($post_data)
         $location_index = $lane_inf->allocation;
         $locations = array();
         while ($row = mysqli_fetch_object($result)) {
-            if ($row->part == $part->part_no) {
+            if ($row->part == $part['part_no']) {
                 array_push($locations, $location_index);
-                $amount += $part->amount;
+                $amount += $part['amount'];
             }
             $location_index--;
         }

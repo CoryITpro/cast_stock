@@ -107,6 +107,7 @@ $booked_in_out = get_booked_in_out('Stocking', $shift_inf['shift'], $shift_inf['
                     chart: {
                         type: 'bar'
                     },
+                    colors: ["#000000", "#BBBBBB","#2f6eba","#ffff53"],
                     series: [],
                     xaxis: {},
                     title: {
@@ -180,22 +181,45 @@ $booked_in_out = get_booked_in_out('Stocking', $shift_inf['shift'], $shift_inf['
                     },
                     dataType: 'JSON'
                 }).done(function(res) {
-                    if (type == 'lp')
-                        var k = window.lpWeekChart
-                    else
-                        var k = window.hpWeekChart
-                    k.updateOptions({
-                        xaxis: {
-                            categories: res.xaxis
-                        },
-                        series: [{
-                            name: "IN",
-                            data: res.in_count_array
-                        }, {
-                            name: "OUT",
-                            data: res.out_count_array
-                        }]
-                    }, true)
+                    if (type == 'lp') {
+                        window.lpWeekChart.updateOptions({
+                            xaxis: {
+                                categories: res.xaxis
+                            },
+                            series: [{
+                                name: "IN",
+                                data: res.in_count_array
+                            }, {
+                                name: "OUT",
+                                data: res.out_count_array
+                            }, {
+                                name: "ZRC",
+                                data: res.val1
+                            }, {
+                                name: "ZRKC",
+                                data: res.val2
+                            }]
+                        }, true)
+                    } else {
+                        window.hpWeekChart.updateOptions({
+                            xaxis: {
+                                categories: res.xaxis
+                            },
+                            series: [{
+                                name: "IN",
+                                data: res.in_count_array
+                            }, {
+                                name: "OUT",
+                                data: res.out_count_array
+                            }, {
+                                name: "ZRB",
+                                data: res.val1
+                            }, {
+                                name: "ZRKB",
+                                data: res.val2
+                            }]
+                        }, true)
+                    }
                 })
             }
 
@@ -212,21 +236,43 @@ $booked_in_out = get_booked_in_out('Stocking', $shift_inf['shift'], $shift_inf['
                     dataType: 'JSON'
                 }).done(function(res) {
                     if (type == 'lp')
-                        var k = window.lpMonthChart
+                        window.lpMonthChart.updateOptions({
+                            xaxis: {
+                                categories: res.xaxis
+                            },
+                            series: [{
+                                name: "IN",
+                                data: res.in_count_array
+                            }, {
+                                name: "OUT",
+                                data: res.out_count_array
+                            }, {
+                                name: "ZRC",
+                                data: res.val1
+                            }, {
+                                name: "ZRKC",
+                                data: res.val2
+                            }]
+                        }, true)
                     else
-                        var k = window.hpMonthChart
-                    k.updateOptions({
-                        xaxis: {
-                            categories: res.xaxis
-                        },
-                        series: [{
-                            name: "IN",
-                            data: res.in_count_array
-                        }, {
-                            name: "OUT",
-                            data: res.out_count_array
-                        }]
-                    }, true)
+                        window.hpMonthChart.updateOptions({
+                            xaxis: {
+                                categories: res.xaxis
+                            },
+                            series: [{
+                                name: "IN",
+                                data: res.in_count_array
+                            }, {
+                                name: "OUT",
+                                data: res.out_count_array
+                            }, {
+                                name: "ZRB",
+                                data: res.val1
+                            }, {
+                                name: "ZRKB",
+                                data: res.val2
+                            }]
+                        }, true)
                 })
             }
 
@@ -243,21 +289,43 @@ $booked_in_out = get_booked_in_out('Stocking', $shift_inf['shift'], $shift_inf['
                     dataType: 'JSON'
                 }).done(function(res) {
                     if (type == 'lp')
-                        var k = window.lpYearChart
+                        window.lpYearChart.updateOptions({
+                            xaxis: {
+                                categories: res.xaxis
+                            },
+                            series: [{
+                                name: "IN",
+                                data: res.in_count_array
+                            }, {
+                                name: "OUT",
+                                data: res.out_count_array
+                            }, {
+                                name: "ZRC",
+                                data: res.val1
+                            }, {
+                                name: "ZRKC",
+                                data: res.val2
+                            }]
+                        }, true)
                     else
-                        var k = window.hpYearChart
-                    k.updateOptions({
-                        xaxis: {
-                            categories: res.xaxis
-                        },
-                        series: [{
-                            name: "IN",
-                            data: res.in_count_array
-                        }, {
-                            name: "OUT",
-                            data: res.out_count_array
-                        }]
-                    }, true)
+                        window.hpYearChart.updateOptions({
+                            xaxis: {
+                                categories: res.xaxis
+                            },
+                            series: [{
+                                name: "IN",
+                                data: res.in_count_array
+                            }, {
+                                name: "OUT",
+                                data: res.out_count_array
+                            }, {
+                                name: "ZRB",
+                                data: res.val1
+                            }, {
+                                name: "ZRKB",
+                                data: res.val2
+                            }]
+                        }, true)
                 })
             }
         </script>

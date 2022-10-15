@@ -588,9 +588,11 @@ function read_barcode($post_data)
                     $stocking_action = $_SESSION['stocking_action'];
                     if ($stocking_action == 'in') {
                         if ($left_allocation > 0) {
-                            $query = "INSERT INTO {$tblScanLog}  (`part`, `lane_id`, `booked_in`, `booked_out`, `page`, `shift`, `shift_date`, `user_id`, `booked_in_time`)
-                                    value ('{$part_barcode}', '{$lane_id}', 1, 0, '{$page}', '{$shift_id}', '{$shift_date}', {$user_id}, NOW())";
-                            $db->query($query);
+                            $now = date("Y-m-d H:i:s");
+                            upsert_total("in", $now, $part['part_no']);
+                            // $query = "INSERT INTO {$tblScanLog}  (`part`, `lane_id`, `booked_in`, `booked_out`, `page`, `shift`, `shift_date`, `user_id`, `booked_in_time`)
+                            //         value ('{$part_barcode}', '{$lane_id}', 1, 0, '{$page}', '{$shift_id}', '{$shift_date}', {$user_id}, '{$now}')";
+                            // $db->query($query);
                         } else {
                             $data['error'] = 'Lane allocation already was 0.';
                         }
@@ -599,14 +601,18 @@ function read_barcode($post_data)
                         $result = $db->query($query);
                         $chk = mysqli_num_rows($result);
                         if ($chk > 0) {
-                            $scanned = mysqli_fetch_object($result);
-                            $update = "UPDATE {$tblScanLog} SET `booked_out` = 1, `out_user_id` = {$user_id}, `booked_out_time` = NOW() WHERE id = {$scanned->id}";
-                            $db->query($update);
+                            $now = date("Y-m-d H:i:s");
+                            upsert_total("out", $now, $part['part_no']);
+                            // $scanned = mysqli_fetch_object($result);
+                            // $update = "UPDATE {$tblScanLog} SET `booked_out` = 1, `out_user_id` = {$user_id}, `booked_out_time` = '{$now}' WHERE id = {$scanned->id}";
+                            // $db->query($update);
                         } else {
                             $data['error'] = 'There is no scanned in lane';
                         }
                     }
                 }
+            } else {
+                $data['error'] = 'Lane No is incorrect.';
             }
         } else {
             $data['error'] = 'Part No is incorrect.';
@@ -625,6 +631,42 @@ function read_barcode($post_data)
     echo json_encode($data, true);
 }
 
+function upsert_total($in_out, $action_time, $part_no)
+{
+    global $db, $tblStockingTotal;
+    $action_date = date("Y-m-d", strtotime($action_time));
+    $query = "SELECT * FROM {$tblStockingTotal} WHERE action_date='{$action_date}' AND part='{$part_no}'";
+    $result = $db->query($query);
+    if (mysqli_num_rows($result)) {
+        $res = mysqli_fetch_array($result, MYSQLI_ASSOC);
+
+        if ($in_out == 'in')
+            $total = $res['total'] + 1;
+        else
+            $total = $res['total'] - 1;
+
+        $query = "UPDATE {$tblStockingTotal} SET total={$total} WHERE id={$res['id']}";
+        $db->query($query);
+    } else {
+        $query = "SELECT total FROM {$tblStockingTotal} WHERE part='{$part_no}' ORDER BY action_date DESC LIMIT 1";
+        $result = $db->query($query);
+
+        if (mysqli_num_rows($result)) {
+            $res = mysqli_fetch_array($result, MYSQLI_ASSOC);
+            if ($in_out == 'in')
+                $total = $res['total'] + 1;
+            else
+                $total = $res['total'] - 1;
+        } else {
+            if ($in_out == 'in')
+                $total = 1;
+            else
+                $total = -1;
+        }
+        $query = "INSERT INTO {$tblStockingTotal} (action_date, total, part) VALUES ('{$action_date}', {$total}, '{$part_no}')";
+        $db->query($query);
+    }
+}
 function get_booked_in_out($page, $shift_id, $shift_date)
 {
     global $db, $tblScanLog, $_SESSION;
@@ -2357,16 +2399,19 @@ function read_part2kanban()
 
 function read_graph_week($post_data)
 {
-    global $tblScanLog, $db;
+    global $tblScanLog, $tblStockingTotal, $db;
     $part = $post_data['part'];
-    if ($part == 'lp')
+    if ($part == 'lp') {
         $part_str = "'ZRC', 'ZRKC'";
-    else
+        $vals = ['ZRC', 'ZRKC'];
+    } else {
         $part_str = "'ZRB', 'ZRKB'";
+        $vals = ['ZRB', 'ZRKB'];
+    }
 
     $temp = explode("-W", $post_data['week']);
-    $first_day = date('Y-m-d', strtotime($temp[0]."W".$temp[1]."1"));
-    $last_day = date('Y-m-d', strtotime($temp[0]."W".$temp[1]."7"));
+    $first_day = date('Y-m-d', strtotime($temp[0] . "W" . $temp[1] . "1"));
+    $last_day = date('Y-m-d', strtotime($temp[0] . "W" . $temp[1] . "7"));
 
     $period =  new DatePeriod(
         new DateTime($first_day),
@@ -2382,10 +2427,10 @@ function read_graph_week($post_data)
     $query = "SELECT COUNT(id) AS count, DATE(booked_in_time) AS in_date FROM {$tblScanLog} WHERE DATE(booked_in_time)>= '{$first_day}' AND DATE(booked_in_time) <= '{$last_day}' AND part IN ({$part_str}) GROUP BY in_date ORDER BY in_date";
 
     $result = mysqli_fetch_all($db->query($query), MYSQLI_ASSOC);
-    foreach($xaxis as $each) {
+    foreach ($xaxis as $each) {
         $in_count_array[$each] = 0;
     }
-    foreach($result as $each) {
+    foreach ($result as $each) {
         $in_count_array[$each['in_date']] = $each['count'];
     }
 
@@ -2393,17 +2438,34 @@ function read_graph_week($post_data)
     $query = "SELECT COUNT(id) AS count, DATE(booked_out_time) AS out_date FROM {$tblScanLog} WHERE DATE(booked_out_time)>= '{$first_day}' AND DATE(booked_out_time) <= '{$last_day}' AND part IN ({$part_str}) GROUP BY out_date ORDER BY out_date";
     $result = mysqli_fetch_all($db->query($query), MYSQLI_ASSOC);
 
-    foreach($xaxis as $each) {
+    foreach ($xaxis as $each) {
         $out_count_array[$each] = 0;
     }
-    foreach($result as $each) {
+    foreach ($result as $each) {
         $out_count_array[$each['out_date']] = $each['count'];
     }
+
+    $val1 = array();
+    $val2 = array();
+    foreach ($vals as $index => $each_val) {
+        $query = "SELECT * FROM {$tblStockingTotal} WHERE DATE(action_date)>= '{$first_day}' AND DATE(action_date) <= '{$last_day}' AND part = '{$each_val}'";
+
+        $result = mysqli_fetch_all($db->query($query), MYSQLI_ASSOC);
+        foreach ($xaxis as $each) {
+            ${"val" . ($index + 1)}[$each] = 0;
+        }
+        foreach ($result as $each) {
+            ${"val" . ($index + 1)}[$each['action_date']] = $each['total'];
+        }
+    }
+
 
     $return = [
         'xaxis' => $xaxis,
         'in_count_array' => array_values($in_count_array),
-        'out_count_array' => array_values($out_count_array)
+        'out_count_array' => array_values($out_count_array),
+        'val1' => array_values($val1),
+        'val2' => array_values($val2)
     ];
 
     echo json_encode($return);
@@ -2411,12 +2473,16 @@ function read_graph_week($post_data)
 
 function read_graph_month($post_data)
 {
-    global $tblScanLog, $db;
+    global $tblScanLog, $db, $tblStockingTotal;
     $part = $post_data['part'];
-    if ($part == 'lp')
+    if ($part == 'lp') {
         $part_str = "'ZRC', 'ZRKC'";
-    else
+        $vals = ['ZRC', 'ZRKC'];
+    } else {
         $part_str = "'ZRB', 'ZRKB'";
+        $vals = ['ZRB', 'ZRKB'];
+    }
+
     $first_day = $post_data['month'] . "-01";
     $last_day = date("Y-m-t", strtotime($first_day));
 
@@ -2434,10 +2500,10 @@ function read_graph_month($post_data)
     $query = "SELECT COUNT(id) AS count, DATE(booked_in_time) AS in_date FROM {$tblScanLog} WHERE DATE(booked_in_time)>= '{$first_day}' AND DATE(booked_in_time) <= '{$last_day}' AND part IN ({$part_str}) GROUP BY in_date ORDER BY in_date";
 
     $result = mysqli_fetch_all($db->query($query), MYSQLI_ASSOC);
-    foreach($xaxis as $each) {
+    foreach ($xaxis as $each) {
         $in_count_array[$each] = 0;
     }
-    foreach($result as $each) {
+    foreach ($result as $each) {
         $in_count_array[$each['in_date']] = $each['count'];
     }
 
@@ -2445,17 +2511,34 @@ function read_graph_month($post_data)
     $query = "SELECT COUNT(id) AS count, DATE(booked_out_time) AS out_date FROM {$tblScanLog} WHERE DATE(booked_out_time)>= '{$first_day}' AND DATE(booked_out_time) <= '{$last_day}' AND part IN ({$part_str}) GROUP BY out_date ORDER BY out_date";
     $result = mysqli_fetch_all($db->query($query), MYSQLI_ASSOC);
 
-    foreach($xaxis as $each) {
+    foreach ($xaxis as $each) {
         $out_count_array[$each] = 0;
     }
-    foreach($result as $each) {
+    foreach ($result as $each) {
         $out_count_array[$each['out_date']] = $each['count'];
     }
+
+    $val1 = array();
+    $val2 = array();
+    foreach ($vals as $index => $each_val) {
+        $query = "SELECT * FROM {$tblStockingTotal} WHERE DATE(action_date)>= '{$first_day}' AND DATE(action_date) <= '{$last_day}' AND part = '{$each_val}'";
+
+        $result = mysqli_fetch_all($db->query($query), MYSQLI_ASSOC);
+        foreach ($xaxis as $each) {
+            ${"val" . ($index + 1)}[$each] = 0;
+        }
+        foreach ($result as $each) {
+            ${"val" . ($index + 1)}[$each['action_date']] = $each['total'];
+        }
+    }
+
 
     $return = [
         'xaxis' => $xaxis,
         'in_count_array' => array_values($in_count_array),
-        'out_count_array' => array_values($out_count_array)
+        'out_count_array' => array_values($out_count_array),
+        'val1' => array_values($val1),
+        'val2' => array_values($val2)
     ];
 
     echo json_encode($return);
@@ -2463,12 +2546,15 @@ function read_graph_month($post_data)
 
 function read_graph_year($post_data)
 {
-    global $tblScanLog, $db;
+    global $tblScanLog, $db, $tblStockingTotal;
     $part = $post_data['part'];
-    if ($part == 'lp')
+    if ($part == 'lp') {
         $part_str = "'ZRC', 'ZRKC'";
-    else
+        $vals = ['ZRC', 'ZRKC'];
+    } else {
         $part_str = "'ZRB', 'ZRKB'";
+        $vals = ['ZRB', 'ZRKB'];
+    }
     $first_month = $post_data['year'] . "-01";
     $last_month = $post_data['year'] . "-12";
 
@@ -2484,10 +2570,10 @@ function read_graph_year($post_data)
     $query = "SELECT COUNT(id) AS count, DATE_FORMAT(booked_in_time, '%Y-%m') AS in_month FROM {$tblScanLog} WHERE DATE_FORMAT(booked_in_time, '%Y-%m') >= '{$first_month}' AND DATE_FORMAT(booked_in_time, '%Y-%m') <= '{$last_month}' AND part IN ({$part_str}) GROUP BY in_month ORDER BY in_month";
 
     $result = mysqli_fetch_all($db->query($query), MYSQLI_ASSOC);
-    foreach($xaxis as $each) {
+    foreach ($xaxis as $each) {
         $in_count_array[$each] = 0;
     }
-    foreach($result as $each) {
+    foreach ($result as $each) {
         $in_count_array[$each['in_month']] = $each['count'];
     }
 
@@ -2495,18 +2581,35 @@ function read_graph_year($post_data)
     $query = "SELECT COUNT(id) AS count, DATE_FORMAT(booked_out_time, '%Y-%m') AS out_month FROM {$tblScanLog} WHERE DATE_FORMAT(booked_out_time, '%Y-%m') >= '{$first_month}' AND DATE_FORMAT(booked_out_time, '%Y-%m') <= '{$last_month}' AND part IN ({$part_str}) GROUP BY out_month ORDER BY out_month";
 
     $result = mysqli_fetch_all($db->query($query), MYSQLI_ASSOC);
-    foreach($xaxis as $each) {
+    foreach ($xaxis as $each) {
         $out_count_array[$each] = 0;
     }
-    foreach($result as $each) {
+    foreach ($result as $each) {
         $out_count_array[$each['out_month']] = $each['count'];
+    }
+
+    $val1 = array();
+    $val2 = array();
+    foreach ($vals as $index => $each_val) {
+        $query = "SELECT SUM(total) AS total, DATE_FORMAT(action_date, '%Y-%m') AS action_month FROM {$tblStockingTotal} WHERE DATE_FORMAT(action_date, '%Y-%m') >= '{$first_month}' AND DATE_FORMAT(action_date, '%Y-%m') <= '{$last_month}' AND part = '{$each_val}'";
+
+        $result = mysqli_fetch_all($db->query($query), MYSQLI_ASSOC);
+        foreach ($xaxis as $each) {
+            ${"val" . ($index + 1)}[$each] = 0;
+        }
+        foreach ($result as $each) {
+            ${"val" . ($index + 1)}[$each['action_month']] = $each['total'];
+        }
     }
 
     $return = [
         'xaxis' => $xaxis,
         'in_count_array' => array_values($in_count_array),
-        'out_count_array' => array_values($out_count_array)
+        'out_count_array' => array_values($out_count_array),
+        'val1' => array_values($val1),
+        'val2' => array_values($val2)
     ];
+
 
     echo json_encode($return);
 }

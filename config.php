@@ -20,7 +20,7 @@ $tblConveyancePicks = 'conveyance_picks';
 $tblDolly = 'dolly';
 $tblPart2Kanban = 'part_to_kanban';
 $tblOverstock = 'overstock';
-
+$tblStockingTotal = "stocking_total";
 $db = new mysqli($DB_HOST,$DB_USER,$DB_PASSWORD,$DB_NAME);
 // Check connection
 if (mysqli_connect_errno())

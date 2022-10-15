@@ -589,10 +589,10 @@ function read_barcode($post_data)
                     if ($stocking_action == 'in') {
                         if ($left_allocation > 0) {
                             $now = date("Y-m-d H:i:s");
+                            $query = "INSERT INTO {$tblScanLog}  (`part`, `lane_id`, `booked_in`, `booked_out`, `page`, `shift`, `shift_date`, `user_id`, `booked_in_time`)
+                                    value ('{$part_barcode}', '{$lane_id}', 1, 0, '{$page}', '{$shift_id}', '{$shift_date}', {$user_id}, '{$now}')";
+                            $db->query($query);
                             upsert_total("in", $now, $part['part_no']);
-                            // $query = "INSERT INTO {$tblScanLog}  (`part`, `lane_id`, `booked_in`, `booked_out`, `page`, `shift`, `shift_date`, `user_id`, `booked_in_time`)
-                            //         value ('{$part_barcode}', '{$lane_id}', 1, 0, '{$page}', '{$shift_id}', '{$shift_date}', {$user_id}, '{$now}')";
-                            // $db->query($query);
                         } else {
                             $data['error'] = 'Lane allocation already was 0.';
                         }
@@ -602,10 +602,10 @@ function read_barcode($post_data)
                         $chk = mysqli_num_rows($result);
                         if ($chk > 0) {
                             $now = date("Y-m-d H:i:s");
+                            $scanned = mysqli_fetch_object($result);
+                            $update = "UPDATE {$tblScanLog} SET `booked_out` = 1, `out_user_id` = {$user_id}, `booked_out_time` = '{$now}' WHERE id = {$scanned->id}";
+                            $db->query($update);
                             upsert_total("out", $now, $part['part_no']);
-                            // $scanned = mysqli_fetch_object($result);
-                            // $update = "UPDATE {$tblScanLog} SET `booked_out` = 1, `out_user_id` = {$user_id}, `booked_out_time` = '{$now}' WHERE id = {$scanned->id}";
-                            // $db->query($update);
                         } else {
                             $data['error'] = 'There is no scanned in lane';
                         }

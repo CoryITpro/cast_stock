@@ -360,7 +360,8 @@ function save_lane($post_data)
     else
         echo 'Fail';
 }
-function get_max_lane_rows() {
+function get_max_lane_rows()
+{
     global $db, $tblStocking;
     $query = "SELECT MAX(allocation/height) AS maxrow FROM {$tblStocking}";
     $res = mysqli_fetch_object($db->query($query));
@@ -1168,16 +1169,16 @@ function read_area_lane_status($post_data, $direction = NULL)
     } else {
         $part_no = '';
     }
-    $query = "SELECT * FROM {$tblParts} WHERE part_no='".$part_no."'";
-    $this_part = mysqli_fetch_array($db->query($query)) ;
+    $query = "SELECT * FROM {$tblParts} WHERE part_no='" . $part_no . "'";
+    $this_part = mysqli_fetch_array($db->query($query));
 
     $areas = array();
 
     $lanes;
     $areas_name = $STOCKING_AREAS;
-    if ( ! intval($this_part['sf']))
+    if (!intval($this_part['sf']))
         unset($areas_name[array_search('L/P', $areas_name)]);
-    if ( ! intval($this_part['ps']))
+    if (!intval($this_part['ps']))
         unset($areas_name[array_search('H/P', $areas_name)]);
     foreach ($areas_name as $index => $area) {
         $lanes = get_all_lanes($area);
@@ -1316,7 +1317,6 @@ function get_oldest_lanes_scanned($stock_available_lanes, $post_data, $direction
                     $lean_name = "Lane " . $tem->lane_no;
                     $area_code = $tem->area;
                 }
-
             }
         }
     }
@@ -1356,7 +1356,8 @@ function get_filled_lanes_by_part($post_data)
     $data['part'] = $part;
     $amount = 0;
     $lanes = array();
-    var_dump($filled_lanes);exit;
+    var_dump($filled_lanes);
+    exit;
     foreach ($filled_lanes as $lane_id) {
         $query = "SELECT * FROM {$tblScanLog} WHERE `page` = '{$page}' AND `booked_in` = 1 AND `booked_out` = 0 AND `lane_id` = {$lane_id}";
         $result = $db->query($query);
@@ -1400,7 +1401,7 @@ function load_overview_screen($post_data)
                 $tmp = mysqli_fetch_array($result);
                 array_push($td_data, array(
                     'id' => 'td_' . $lane->id . '_0',
-                    'td_class' => $tmp['part']."-color"
+                    'td_class' => $tmp['part'] . "-color"
                 ));
             }
 
@@ -2352,4 +2353,160 @@ function read_part2kanban()
         echo '</td>';
         echo '</tr>';
     }
+}
+
+function read_graph_week($post_data)
+{
+    global $tblScanLog, $db;
+    $part = $post_data['part'];
+    if ($part == 'lp')
+        $part_str = "'ZRC', 'ZRKC'";
+    else
+        $part_str = "'ZRB', 'ZRKB'";
+
+    $temp = explode("-W", $post_data['week']);
+    $first_day = date('Y-m-d', strtotime($temp[0]."W".$temp[1]."1"));
+    $last_day = date('Y-m-d', strtotime($temp[0]."W".$temp[1]."7"));
+
+    $period =  new DatePeriod(
+        new DateTime($first_day),
+        new DateInterval('P1D'),
+        new DateTime($last_day)
+    );
+    $xaxis = array();
+    foreach ($period as $key => $value) {
+        array_push($xaxis, $value->format('Y-m-d'));
+    }
+
+    $in_count_array = array();
+    $query = "SELECT COUNT(id) AS count, DATE(booked_in_time) AS in_date FROM {$tblScanLog} WHERE DATE(booked_in_time)>= '{$first_day}' AND DATE(booked_in_time) <= '{$last_day}' AND part IN ({$part_str}) GROUP BY in_date ORDER BY in_date";
+
+    $result = mysqli_fetch_all($db->query($query), MYSQLI_ASSOC);
+    foreach($xaxis as $each) {
+        $in_count_array[$each] = 0;
+    }
+    foreach($result as $each) {
+        $in_count_array[$each['in_date']] = $each['count'];
+    }
+
+    $out_count_array = array();
+    $query = "SELECT COUNT(id) AS count, DATE(booked_out_time) AS out_date FROM {$tblScanLog} WHERE DATE(booked_out_time)>= '{$first_day}' AND DATE(booked_out_time) <= '{$last_day}' AND part IN ({$part_str}) GROUP BY out_date ORDER BY out_date";
+    $result = mysqli_fetch_all($db->query($query), MYSQLI_ASSOC);
+
+    foreach($xaxis as $each) {
+        $out_count_array[$each] = 0;
+    }
+    foreach($result as $each) {
+        $out_count_array[$each['out_date']] = $each['count'];
+    }
+
+    $return = [
+        'xaxis' => $xaxis,
+        'in_count_array' => array_values($in_count_array),
+        'out_count_array' => array_values($out_count_array)
+    ];
+
+    echo json_encode($return);
+}
+
+function read_graph_month($post_data)
+{
+    global $tblScanLog, $db;
+    $part = $post_data['part'];
+    if ($part == 'lp')
+        $part_str = "'ZRC', 'ZRKC'";
+    else
+        $part_str = "'ZRB', 'ZRKB'";
+    $first_day = $post_data['month'] . "-01";
+    $last_day = date("Y-m-t", strtotime($first_day));
+
+    $period =  new DatePeriod(
+        new DateTime($first_day),
+        new DateInterval('P1D'),
+        new DateTime($last_day)
+    );
+    $xaxis = array();
+    foreach ($period as $key => $value) {
+        array_push($xaxis, $value->format('Y-m-d'));
+    }
+
+    $in_count_array = array();
+    $query = "SELECT COUNT(id) AS count, DATE(booked_in_time) AS in_date FROM {$tblScanLog} WHERE DATE(booked_in_time)>= '{$first_day}' AND DATE(booked_in_time) <= '{$last_day}' AND part IN ({$part_str}) GROUP BY in_date ORDER BY in_date";
+
+    $result = mysqli_fetch_all($db->query($query), MYSQLI_ASSOC);
+    foreach($xaxis as $each) {
+        $in_count_array[$each] = 0;
+    }
+    foreach($result as $each) {
+        $in_count_array[$each['in_date']] = $each['count'];
+    }
+
+    $out_count_array = array();
+    $query = "SELECT COUNT(id) AS count, DATE(booked_out_time) AS out_date FROM {$tblScanLog} WHERE DATE(booked_out_time)>= '{$first_day}' AND DATE(booked_out_time) <= '{$last_day}' AND part IN ({$part_str}) GROUP BY out_date ORDER BY out_date";
+    $result = mysqli_fetch_all($db->query($query), MYSQLI_ASSOC);
+
+    foreach($xaxis as $each) {
+        $out_count_array[$each] = 0;
+    }
+    foreach($result as $each) {
+        $out_count_array[$each['out_date']] = $each['count'];
+    }
+
+    $return = [
+        'xaxis' => $xaxis,
+        'in_count_array' => array_values($in_count_array),
+        'out_count_array' => array_values($out_count_array)
+    ];
+
+    echo json_encode($return);
+}
+
+function read_graph_year($post_data)
+{
+    global $tblScanLog, $db;
+    $part = $post_data['part'];
+    if ($part == 'lp')
+        $part_str = "'ZRC', 'ZRKC'";
+    else
+        $part_str = "'ZRB', 'ZRKB'";
+    $first_month = $post_data['year'] . "-01";
+    $last_month = $post_data['year'] . "-12";
+
+    $xaxis = array();
+    for ($i = 1; $i <= 12; $i++) {
+        if ($i < 10)
+            array_push($xaxis, "{$post_data['year']}-0{$i}");
+        else
+            array_push($xaxis, $post_data['year'] . "-" . strval($i));
+    }
+
+    $in_count_array = array();
+    $query = "SELECT COUNT(id) AS count, DATE_FORMAT(booked_in_time, '%Y-%m') AS in_month FROM {$tblScanLog} WHERE DATE_FORMAT(booked_in_time, '%Y-%m') >= '{$first_month}' AND DATE_FORMAT(booked_in_time, '%Y-%m') <= '{$last_month}' AND part IN ({$part_str}) GROUP BY in_month ORDER BY in_month";
+
+    $result = mysqli_fetch_all($db->query($query), MYSQLI_ASSOC);
+    foreach($xaxis as $each) {
+        $in_count_array[$each] = 0;
+    }
+    foreach($result as $each) {
+        $in_count_array[$each['in_month']] = $each['count'];
+    }
+
+    $out_count_array = array();
+    $query = "SELECT COUNT(id) AS count, DATE_FORMAT(booked_out_time, '%Y-%m') AS out_month FROM {$tblScanLog} WHERE DATE_FORMAT(booked_out_time, '%Y-%m') >= '{$first_month}' AND DATE_FORMAT(booked_out_time, '%Y-%m') <= '{$last_month}' AND part IN ({$part_str}) GROUP BY out_month ORDER BY out_month";
+
+    $result = mysqli_fetch_all($db->query($query), MYSQLI_ASSOC);
+    foreach($xaxis as $each) {
+        $out_count_array[$each] = 0;
+    }
+    foreach($result as $each) {
+        $out_count_array[$each['out_month']] = $each['count'];
+    }
+
+    $return = [
+        'xaxis' => $xaxis,
+        'in_count_array' => array_values($in_count_array),
+        'out_count_array' => array_values($out_count_array)
+    ];
+
+    echo json_encode($return);
 }

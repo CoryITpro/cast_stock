@@ -23,6 +23,12 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a href="stocking_levels.php" class="nav-link <?php echo ($page_name == 'Stocking Level') ? 'active' : ''; ?>">
+                        <i class="far fa-circle nav-icon"></i>
+                        <p>Level</p>
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a href="stocking_admin.php" class="nav-link <?php echo ($page_name == 'Stocking Admin') ? 'active' : ''; ?>">
                         <i class="far fa-circle nav-icon"></i>
                         <p>Admin</p>

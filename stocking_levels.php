@@ -15,6 +15,16 @@ $booked_in_out = get_booked_in_out('Stocking', $shift_inf['shift'], $shift_inf['
         max-width: 50%;
         height: 400px;
     }
+
+    .part-title {
+        font-weight: bold;
+        font-size: 20px;
+    }
+
+    .part-count {
+        font-weight: bold;
+        font-size: 60px;
+    }
 </style>
 <script src="plugins/apexcharts.js"></script>
 
@@ -31,6 +41,29 @@ $booked_in_out = get_booked_in_out('Stocking', $shift_inf['shift'], $shift_inf['
             </div>
             <div class="content">
                 <div class="container-fluid">
+                    <h3 style="font-weight: bold;text-align: center;margin: 0;position: relative;top: 20px;">Stocking Levels</h3>
+                    <div class="row" style="margin-bottom: 10px;">
+                        <div class="col-md-6" style="display: flex;justify-content: space-around;">
+                            <div style="border-radius: 100%;width: 200px;height: 200px;flex-direction: column;display:flex;background-color: #2f6eba !important;justify-content: center;align-items: center;">
+                                <span class="part-title">ZR Cylinder</span>
+                                <span class="part-count" id="zrc-count"></span>
+                            </div>
+                            <div style="border-radius: 100%;width: 200px;height: 200px;display:flex;flex-direction: column;background-color: #ffff53 !important;justify-content: center;align-items: center;">
+                                <span class="part-title">ZRK Cylinder</span>
+                                <span class="part-count" id="zrkc-count"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6" style="display: flex;justify-content: space-around;">
+                            <div style="border-radius: 100%;width: 200px;height: 200px;flex-direction: column;display:flex;background-color: #75a931;justify-content: center;align-items: center;">
+                                <span class="part-title">ZR Block</span>
+                                <span class="part-count" id="zrb-count"></span>
+                            </div>
+                            <div style="border-radius: 100%;width: 200px;height: 200px;display:flex;flex-direction: column;background-color: #ffff53 !important;justify-content: center;align-items: center;">
+                                <span class="part-title">ZRK Block</span>
+                                <span class="part-count" id="zrkb-count"></span>
+                            </div>
+                        </div>
+                    </div>
                     <div class="row">
                         <div class="col-md-6">
                             <div class="card">
@@ -103,11 +136,45 @@ $booked_in_out = get_booked_in_out('Stocking', $shift_inf['shift'], $shift_inf['
         <script src="assets/js/custom.js"></script>
         <script>
             $(document).ready(function() {
+                $.ajax({
+                    url: "actions.php",
+                    method: "post",
+                    data: {
+                        'action': 'read_graph_circle',
+                    },
+                    dataType: 'JSON'
+                }).done(function(res) {
+                    $("#zrc-count").text(res.zrc)
+                    $("#zrkc-count").text(res.zrkc)
+                    $("#zrb-count").text(res.zrb)
+                    $("#zrkb-count").text(res.zrkb)
+                })
+
                 var options = {
                     chart: {
-                        type: 'bar'
+                        height: 350,
+                        type: 'line',
+                        zoom: {
+                            enabled: false
+                        }
                     },
-                    colors: ["#000000", "#BBBBBB","#2f6eba","#ffff53"],
+                    dataLabels: {
+                        enabled: false
+                    },
+                    stroke: {
+                        curve: 'smooth'
+                    },
+                    title: {
+                        text: 'Product Trends by Month',
+                        align: 'left'
+                    },
+                    grid: {
+                        row: {
+                            colors: ['#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
+                            opacity: 0.5
+                        },
+                    },
+                    colors: ["#000000", "#BBBBBB", "#2f6eba", "#ffff53"],
                     series: [],
                     xaxis: {},
                     title: {
@@ -116,6 +183,9 @@ $booked_in_out = get_booked_in_out('Stocking', $shift_inf['shift'], $shift_inf['
                             fontSize: '20px',
                             fontWeight: "bold"
                         }
+                    },
+                    legend: {
+                        position: "top"
                     }
                 }
 
@@ -181,6 +251,7 @@ $booked_in_out = get_booked_in_out('Stocking', $shift_inf['shift'], $shift_inf['
                     },
                     dataType: 'JSON'
                 }).done(function(res) {
+                    console.log(res)
                     if (type == 'lp') {
                         window.lpWeekChart.updateOptions({
                             xaxis: {

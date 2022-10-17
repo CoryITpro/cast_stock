@@ -25,7 +25,7 @@
                 <li class="nav-item">
                     <a href="stocking_levels.php" class="nav-link <?php echo ($page_name == 'Stocking Level') ? 'active' : ''; ?>">
                         <i class="far fa-circle nav-icon"></i>
-                        <p>Level</p>
+                        <p>Stocking Levels</p>
                     </a>
                 </li>
                 <li class="nav-item">

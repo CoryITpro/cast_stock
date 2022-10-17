@@ -2412,11 +2412,12 @@ function read_graph_week($post_data)
     $temp = explode("-W", $post_data['week']);
     $first_day = date('Y-m-d', strtotime($temp[0] . "W" . $temp[1] . "1"));
     $last_day = date('Y-m-d', strtotime($temp[0] . "W" . $temp[1] . "7"));
+    $last_day_next = date("Y-m-d", strtotime('+1 day', strtotime($last_day)));
 
     $period =  new DatePeriod(
         new DateTime($first_day),
         new DateInterval('P1D'),
-        new DateTime($last_day)
+        new DateTime($last_day_next)
     );
     $xaxis = array();
     foreach ($period as $key => $value) {
@@ -2485,11 +2486,11 @@ function read_graph_month($post_data)
 
     $first_day = $post_data['month'] . "-01";
     $last_day = date("Y-m-t", strtotime($first_day));
-
+    $last_day_next = date("Y-m-d", strtotime('+1 day', strtotime($last_day)));
     $period =  new DatePeriod(
         new DateTime($first_day),
         new DateInterval('P1D'),
-        new DateTime($last_day)
+        new DateTime($last_day_next)
     );
     $xaxis = array();
     foreach ($period as $key => $value) {
@@ -2590,15 +2591,18 @@ function read_graph_year($post_data)
 
     $val1 = array();
     $val2 = array();
+
     foreach ($vals as $index => $each_val) {
         $query = "SELECT SUM(total) AS total, DATE_FORMAT(action_date, '%Y-%m') AS action_month FROM {$tblStockingTotal} WHERE DATE_FORMAT(action_date, '%Y-%m') >= '{$first_month}' AND DATE_FORMAT(action_date, '%Y-%m') <= '{$last_month}' AND part = '{$each_val}'";
 
         $result = mysqli_fetch_all($db->query($query), MYSQLI_ASSOC);
+
         foreach ($xaxis as $each) {
             ${"val" . ($index + 1)}[$each] = 0;
         }
-        foreach ($result as $each) {
-            ${"val" . ($index + 1)}[$each['action_month']] = $each['total'];
+        foreach ($result as $index => $each) {
+            if ($each['action_month'])
+                ${"val" . ($index + 1)}[$each['action_month']] = $each['total'];
         }
     }
 
@@ -2610,6 +2614,44 @@ function read_graph_year($post_data)
         'val2' => array_values($val2)
     ];
 
+
+    echo json_encode($return);
+}
+
+function read_graph_circle()
+{
+    global $tblStockingTotal, $db;
+    $query = "SELECT * FROM {$tblStockingTotal} WHERE part='ZRC' ORDER BY action_date DESC LIMIT 1";
+    $result = $db->query($query);
+    $res = mysqli_fetch_array($result, MYSQLI_ASSOC);
+    if ($res)
+        $return['zrc'] = $res['total'];
+    else
+        $return['zrc'] = 0;
+
+    $query = "SELECT * FROM {$tblStockingTotal} WHERE part='ZRKC' ORDER BY action_date DESC LIMIT 1";
+    $result = $db->query($query);
+    $res = mysqli_fetch_array($result, MYSQLI_ASSOC);
+    if ($res)
+        $return['zrkc'] = $res['total'];
+    else
+        $return['zrkc'] = 0;
+
+    $query = "SELECT * FROM {$tblStockingTotal} WHERE part='ZRB' ORDER BY action_date DESC LIMIT 1";
+    $result = $db->query($query);
+    $res = mysqli_fetch_array($result, MYSQLI_ASSOC);
+    if ($res)
+        $return['zrb'] = $res['total'];
+    else
+        $return['zrb'] = 0;
+
+    $query = "SELECT * FROM {$tblStockingTotal} WHERE part='ZRKB' ORDER BY action_date DESC LIMIT 1";
+    $result = $db->query($query);
+    $res = mysqli_fetch_array($result, MYSQLI_ASSOC);
+    if ($res)
+        $return['zrkb'] = $res['total'];
+    else
+        $return['zrkb'] = 0;
 
     echo json_encode($return);
 }

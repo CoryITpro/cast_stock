@@ -174,7 +174,7 @@ $booked_in_out = get_booked_in_out('Stocking', $shift_inf['shift'], $shift_inf['
                             opacity: 0.5
                         },
                     },
-                    colors: ["#000000", "#BBBBBB", "#2f6eba", "#ffff53"],
+                    // colors: ["#000000", "#BBBBBB", "#2f6eba", "#ffff53"],
                     series: [],
                     xaxis: {},
                     title: {
@@ -258,16 +258,22 @@ $booked_in_out = get_booked_in_out('Stocking', $shift_inf['shift'], $shift_inf['
                                 categories: res.xaxis
                             },
                             series: [{
-                                name: "IN",
-                                data: res.in_count_array
+                                name: "ZRC-IN",
+                                data: res.in1
                             }, {
-                                name: "OUT",
-                                data: res.out_count_array
+                                name: "ZRC-OUT",
+                                data: res.out1
                             }, {
-                                name: "ZRC",
+                                name: "ZRC-TOTAL",
                                 data: res.val1
                             }, {
-                                name: "ZRKC",
+                                name: "ZRKC-IN",
+                                data: res.in2
+                            }, {
+                                name: "ZRKC-OUT",
+                                data: res.out2
+                            }, {
+                                name: "ZRKC-TOTAL",
                                 data: res.val2
                             }]
                         }, true)
@@ -277,16 +283,22 @@ $booked_in_out = get_booked_in_out('Stocking', $shift_inf['shift'], $shift_inf['
                                 categories: res.xaxis
                             },
                             series: [{
-                                name: "IN",
-                                data: res.in_count_array
+                                name: "ZRB-IN",
+                                data: res.in1
                             }, {
-                                name: "OUT",
-                                data: res.out_count_array
+                                name: "ZRB-OUT",
+                                data: res.out1
                             }, {
-                                name: "ZRB",
+                                name: "ZRB-TOTAL",
                                 data: res.val1
                             }, {
-                                name: "ZRKB",
+                                name: "ZRKB-IN",
+                                data: res.in2
+                            }, {
+                                name: "ZRKB-OUT",
+                                data: res.out2
+                            }, {
+                                name: "ZRKB-TOTAL",
                                 data: res.val2
                             }]
                         }, true)
@@ -312,16 +324,22 @@ $booked_in_out = get_booked_in_out('Stocking', $shift_inf['shift'], $shift_inf['
                                 categories: res.xaxis
                             },
                             series: [{
-                                name: "IN",
-                                data: res.in_count_array
+                                name: "ZRC-IN",
+                                data: res.in1
                             }, {
-                                name: "OUT",
-                                data: res.out_count_array
+                                name: "ZRC-OUT",
+                                data: res.out1
                             }, {
-                                name: "ZRC",
+                                name: "ZRC-TOTAL",
                                 data: res.val1
                             }, {
-                                name: "ZRKC",
+                                name: "ZRKC-IN",
+                                data: res.in2
+                            }, {
+                                name: "ZRKC-OUT",
+                                data: res.out2
+                            }, {
+                                name: "ZRKC-TOTAL",
                                 data: res.val2
                             }]
                         }, true)
@@ -331,16 +349,22 @@ $booked_in_out = get_booked_in_out('Stocking', $shift_inf['shift'], $shift_inf['
                                 categories: res.xaxis
                             },
                             series: [{
-                                name: "IN",
-                                data: res.in_count_array
+                                name: "ZRB-IN",
+                                data: res.in1
                             }, {
-                                name: "OUT",
-                                data: res.out_count_array
+                                name: "ZRB-OUT",
+                                data: res.out1
                             }, {
-                                name: "ZRB",
+                                name: "ZRB-TOTAL",
                                 data: res.val1
                             }, {
-                                name: "ZRKB",
+                                name: "ZRKB-IN",
+                                data: res.in2
+                            }, {
+                                name: "ZRKB-OUT",
+                                data: res.out2
+                            }, {
+                                name: "ZRKB-TOTAL",
                                 data: res.val2
                             }]
                         }, true)
@@ -365,16 +389,22 @@ $booked_in_out = get_booked_in_out('Stocking', $shift_inf['shift'], $shift_inf['
                                 categories: res.xaxis
                             },
                             series: [{
-                                name: "IN",
-                                data: res.in_count_array
+                                name: "ZRC-IN",
+                                data: res.in1
                             }, {
-                                name: "OUT",
-                                data: res.out_count_array
+                                name: "ZRC-OUT",
+                                data: res.out1
                             }, {
-                                name: "ZRC",
+                                name: "ZRC-TOTAL",
                                 data: res.val1
                             }, {
-                                name: "ZRKC",
+                                name: "ZRKC-IN",
+                                data: res.in2
+                            }, {
+                                name: "ZRKC-OUT",
+                                data: res.out2
+                            }, {
+                                name: "ZRKC-TOTAL",
                                 data: res.val2
                             }]
                         }, true)
@@ -384,16 +414,22 @@ $booked_in_out = get_booked_in_out('Stocking', $shift_inf['shift'], $shift_inf['
                                 categories: res.xaxis
                             },
                             series: [{
-                                name: "IN",
-                                data: res.in_count_array
+                                name: "ZRB-IN",
+                                data: res.in1
                             }, {
-                                name: "OUT",
-                                data: res.out_count_array
+                                name: "ZRB-OUT",
+                                data: res.out1
                             }, {
-                                name: "ZRB",
+                                name: "ZRB-TOTAL",
                                 data: res.val1
                             }, {
-                                name: "ZRKB",
+                                name: "ZRKB-IN",
+                                data: res.in2
+                            }, {
+                                name: "ZRKB-OUT",
+                                data: res.out2
+                            }, {
+                                name: "ZRKB-TOTAL",
                                 data: res.val2
                             }]
                         }, true)

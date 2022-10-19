@@ -2424,26 +2424,36 @@ function read_graph_week($post_data)
         array_push($xaxis, $value->format('Y-m-d'));
     }
 
-    $in_count_array = array();
-    $query = "SELECT COUNT(id) AS count, DATE(booked_in_time) AS in_date FROM {$tblScanLog} WHERE DATE(booked_in_time)>= '{$first_day}' AND DATE(booked_in_time) <= '{$last_day}' AND part IN ({$part_str}) GROUP BY in_date ORDER BY in_date";
+    $in_arr1 = array();
+    $in_arr2 = array();
+    foreach ($vals as $index => $each_val) {
 
-    $result = mysqli_fetch_all($db->query($query), MYSQLI_ASSOC);
-    foreach ($xaxis as $each) {
-        $in_count_array[$each] = 0;
-    }
-    foreach ($result as $each) {
-        $in_count_array[$each['in_date']] = $each['count'];
+        $query = "SELECT COUNT(id) AS count, DATE(booked_in_time) AS in_date FROM {$tblScanLog} WHERE DATE(booked_in_time)>= '{$first_day}' AND DATE(booked_in_time) <= '{$last_day}' AND part = '{$each_val}' GROUP BY in_date ORDER BY in_date";
+
+        $result = mysqli_fetch_all($db->query($query), MYSQLI_ASSOC);
+
+        foreach ($xaxis as $each) {
+            ${"in_arr" . ($index + 1)}[$each] = 0;
+        }
+        foreach ($result as $each) {
+            ${"in_arr" . ($index + 1)}[$each['in_date']] = $each['count'];
+        }
     }
 
-    $out_count_array = array();
-    $query = "SELECT COUNT(id) AS count, DATE(booked_out_time) AS out_date FROM {$tblScanLog} WHERE DATE(booked_out_time)>= '{$first_day}' AND DATE(booked_out_time) <= '{$last_day}' AND part IN ({$part_str}) GROUP BY out_date ORDER BY out_date";
-    $result = mysqli_fetch_all($db->query($query), MYSQLI_ASSOC);
+    $out_arr1 = array();
+    $out_arr2 = array();
+    foreach ($vals as $index => $each_val) {
 
-    foreach ($xaxis as $each) {
-        $out_count_array[$each] = 0;
-    }
-    foreach ($result as $each) {
-        $out_count_array[$each['out_date']] = $each['count'];
+        $query = "SELECT COUNT(id) AS count, DATE(booked_out_time) AS out_date FROM {$tblScanLog} WHERE DATE(booked_out_time)>= '{$first_day}' AND DATE(booked_out_time) <= '{$last_day}' AND part ='{$each_val}' GROUP BY out_date ORDER BY out_date";
+
+        $result = mysqli_fetch_all($db->query($query), MYSQLI_ASSOC);
+
+        foreach ($xaxis as $each) {
+            ${"out_arr" . ($index + 1)}[$each] = 0;
+        }
+        foreach ($result as $each) {
+            ${"out_arr" . ($index + 1)}[$each['out_date']] = $each['count'];
+        }
     }
 
     $val1 = array();
@@ -2463,8 +2473,10 @@ function read_graph_week($post_data)
 
     $return = [
         'xaxis' => $xaxis,
-        'in_count_array' => array_values($in_count_array),
-        'out_count_array' => array_values($out_count_array),
+        'in1' => array_values($in_arr1),
+        'in2' => array_values($in_arr2),
+        'out1' => array_values($out_arr1),
+        'out2' => array_values($out_arr2),
         'val1' => array_values($val1),
         'val2' => array_values($val2)
     ];
@@ -2497,26 +2509,33 @@ function read_graph_month($post_data)
         array_push($xaxis, $value->format('Y-m-d'));
     }
 
-    $in_count_array = array();
-    $query = "SELECT COUNT(id) AS count, DATE(booked_in_time) AS in_date FROM {$tblScanLog} WHERE DATE(booked_in_time)>= '{$first_day}' AND DATE(booked_in_time) <= '{$last_day}' AND part IN ({$part_str}) GROUP BY in_date ORDER BY in_date";
+    $in1 = array();
+    $in2 = array();
+    foreach ($vals as $index => $each_val) {
+        $query = "SELECT COUNT(id) AS count, DATE(booked_in_time) AS in_date FROM {$tblScanLog} WHERE DATE(booked_in_time)>= '{$first_day}' AND DATE(booked_in_time) <= '{$last_day}' AND part = '{$each_val}' GROUP BY in_date ORDER BY in_date";
 
-    $result = mysqli_fetch_all($db->query($query), MYSQLI_ASSOC);
-    foreach ($xaxis as $each) {
-        $in_count_array[$each] = 0;
-    }
-    foreach ($result as $each) {
-        $in_count_array[$each['in_date']] = $each['count'];
+        $result = mysqli_fetch_all($db->query($query), MYSQLI_ASSOC);
+        foreach ($xaxis as $each) {
+            ${"in" . ($index + 1)}[$each] = 0;
+        }
+        foreach ($result as $each) {
+            ${"in" . ($index + 1)}[$each['in_date']] = $each['count'];
+        }
     }
 
-    $out_count_array = array();
-    $query = "SELECT COUNT(id) AS count, DATE(booked_out_time) AS out_date FROM {$tblScanLog} WHERE DATE(booked_out_time)>= '{$first_day}' AND DATE(booked_out_time) <= '{$last_day}' AND part IN ({$part_str}) GROUP BY out_date ORDER BY out_date";
-    $result = mysqli_fetch_all($db->query($query), MYSQLI_ASSOC);
 
-    foreach ($xaxis as $each) {
-        $out_count_array[$each] = 0;
-    }
-    foreach ($result as $each) {
-        $out_count_array[$each['out_date']] = $each['count'];
+    $out1 = array();
+    $out2 = array();
+    foreach ($vals as $index => $each_val) {
+        $query = "SELECT COUNT(id) AS count, DATE(booked_out_time) AS out_date FROM {$tblScanLog} WHERE DATE(booked_out_time)>= '{$first_day}' AND DATE(booked_out_time) <= '{$last_day}' AND part = '{$each_val}' GROUP BY out_date ORDER BY out_date";
+
+        $result = mysqli_fetch_all($db->query($query), MYSQLI_ASSOC);
+        foreach ($xaxis as $each) {
+            ${"out" . ($index + 1)}[$each] = 0;
+        }
+        foreach ($result as $each) {
+            ${"out" . ($index + 1)}[$each['out_date']] = $each['count'];
+        }
     }
 
     $val1 = array();
@@ -2536,8 +2555,10 @@ function read_graph_month($post_data)
 
     $return = [
         'xaxis' => $xaxis,
-        'in_count_array' => array_values($in_count_array),
-        'out_count_array' => array_values($out_count_array),
+        'in1' => array_values($in1),
+        'in2' => array_values($in2),
+        'out1' => array_values($out1),
+        'out2' => array_values($out2),
         'val1' => array_values($val1),
         'val2' => array_values($val2)
     ];
@@ -2567,26 +2588,36 @@ function read_graph_year($post_data)
             array_push($xaxis, $post_data['year'] . "-" . strval($i));
     }
 
-    $in_count_array = array();
-    $query = "SELECT COUNT(id) AS count, DATE_FORMAT(booked_in_time, '%Y-%m') AS in_month FROM {$tblScanLog} WHERE DATE_FORMAT(booked_in_time, '%Y-%m') >= '{$first_month}' AND DATE_FORMAT(booked_in_time, '%Y-%m') <= '{$last_month}' AND part IN ({$part_str}) GROUP BY in_month ORDER BY in_month";
+    $in_arr1 = array();
+    $in_arr2 = array();
+    foreach ($vals as $index => $each_val) {
+        $query = "SELECT COUNT(id) AS count, DATE_FORMAT(booked_in_time, '%Y-%m') AS in_month FROM {$tblScanLog} WHERE DATE_FORMAT(booked_in_time, '%Y-%m') >= '{$first_month}' AND DATE_FORMAT(booked_in_time, '%Y-%m') <= '{$last_month}' AND part = '{$each_val}' GROUP BY in_month ORDER BY in_month";
 
-    $result = mysqli_fetch_all($db->query($query), MYSQLI_ASSOC);
-    foreach ($xaxis as $each) {
-        $in_count_array[$each] = 0;
-    }
-    foreach ($result as $each) {
-        $in_count_array[$each['in_month']] = $each['count'];
+        $result = mysqli_fetch_all($db->query($query), MYSQLI_ASSOC);
+
+        foreach ($xaxis as $each) {
+            ${"in_arr" . ($index + 1)}[$each] = 0;
+        }
+        foreach ($result as $index => $each) {
+            if ($each['in_month'])
+                ${"in_arr" . ($index + 1)}[$each['in_month']] = $each['count'];
+        }
     }
 
-    $out_count_array = array();
-    $query = "SELECT COUNT(id) AS count, DATE_FORMAT(booked_out_time, '%Y-%m') AS out_month FROM {$tblScanLog} WHERE DATE_FORMAT(booked_out_time, '%Y-%m') >= '{$first_month}' AND DATE_FORMAT(booked_out_time, '%Y-%m') <= '{$last_month}' AND part IN ({$part_str}) GROUP BY out_month ORDER BY out_month";
+    $out_arr1 = array();
+    $out_arr2 = array();
+    foreach ($vals as $index => $each_val) {
+        $query = "SELECT COUNT(id) AS count, DATE_FORMAT(booked_out_time, '%Y-%m') AS out_month FROM {$tblScanLog} WHERE DATE_FORMAT(booked_out_time, '%Y-%m') >= '{$first_month}' AND DATE_FORMAT(booked_out_time, '%Y-%m') <= '{$last_month}' AND part = '{$each_val}' GROUP BY out_month ORDER BY out_month";
 
-    $result = mysqli_fetch_all($db->query($query), MYSQLI_ASSOC);
-    foreach ($xaxis as $each) {
-        $out_count_array[$each] = 0;
-    }
-    foreach ($result as $each) {
-        $out_count_array[$each['out_month']] = $each['count'];
+        $result = mysqli_fetch_all($db->query($query), MYSQLI_ASSOC);
+
+        foreach ($xaxis as $each) {
+            ${"out_arr" . ($index + 1)}[$each] = 0;
+        }
+        foreach ($result as $index => $each) {
+            if ($each['out_month'])
+                ${"out_arr" . ($index + 1)}[$each['out_month']] = $each['count'];
+        }
     }
 
     $val1 = array();
@@ -2608,8 +2639,10 @@ function read_graph_year($post_data)
 
     $return = [
         'xaxis' => $xaxis,
-        'in_count_array' => array_values($in_count_array),
-        'out_count_array' => array_values($out_count_array),
+        'in1' => array_values($in_arr1),
+        'in2' => array_values($in_arr2),
+        'out1' => array_values($out_arr1),
+        'out2' => array_values($out_arr2),
         'val1' => array_values($val1),
         'val2' => array_values($val2)
     ];

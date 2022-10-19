@@ -1398,8 +1398,7 @@ function get_filled_lanes_by_part($post_data)
     $data['part'] = $part;
     $amount = 0;
     $lanes = array();
-    var_dump($filled_lanes);
-    exit;
+
     foreach ($filled_lanes as $lane_id) {
         $query = "SELECT * FROM {$tblScanLog} WHERE `page` = '{$page}' AND `booked_in` = 1 AND `booked_out` = 0 AND `lane_id` = {$lane_id}";
         $result = $db->query($query);
